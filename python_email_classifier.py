@@ -66,6 +66,79 @@ def read_data():
       data.append([get_bow(w[0],vocabulary),int(w[1])])
     return data,list_of_stem_words_with_label
 
+def split(data):
+  np.random.shuffle(data)
+  size = len(data)
+  train_len = (0.8*size)
+  idx = 0
+  train_data = []
+  test_data = []
+  for elements in data:
+    if idx < train_len:
+      train_data.append(elements)
+    else :
+      test_data.append(elements)
+    idx += 1
+  return train_data, test_data
+
+
+def svm_classifier(train_data,test_data):
+  #Create a svm Classifier
+  clf = svm.SVC(kernel='linear') # Linear Kernel
+
+  #Train the model using the training sets
+  X_train = []
+  y_train = []
+  true_test_labels = []
+  for lists in train_data:
+    freq = []
+    for k, v in lists[0].items():
+      freq.append(v)
+    y_train.append(lists[1])
+    X_train.append(freq)
+  clf.fit(X_train, y_train)
+  #Predict the response for test dataset
+  X_test = []
+  for lists in test_data:
+    freq = []
+    for k, v in lists[0].items():
+      freq.append(v)
+    X_test.append(freq)
+    true_test_labels.append(lists[1])
+  y_pred = clf.predict(X_test)
+  # return predict_labels
+  return true_test_labels,y_pred
+
+
+def knn_classifier(train_data,test_data):
+  X_train = []
+  y_train = []
+  true_test_labels = []
+  for lists in train_data:
+    freq = []
+    for k, v in lists[0].items():
+      freq.append(v)
+    y_train.append(lists[1])
+    X_train.append(freq)
+  
+  #Predict the response for test dataset
+  X_test = []
+  for lists in test_data:
+    freq = []
+    for k, v in lists[0].items():
+      freq.append(v)
+    X_test.append(freq)
+    true_test_labels.append(lists[1])
+
+  knn = KNeighborsClassifier(n_neighbors=3)
+    
+  #Train the model using the training sets
+  knn.fit(X_train, y_train)
+
+  #Predict the response for test dataset
+  y_pred = knn.predict(X_test)
+  # return predict_labels
+  return true_test_labels,y_pred
 
 # visuallze data distribution
 def data_vis(data,list_of_stem_words_with_label):
@@ -99,5 +172,8 @@ def main():
   (data,list_of_stem_words_with_label) = read_data()
   (a,b) = split(data)
 
+  (truelabelssvm,svmpredictedlabels) = svm_classifier(a,b)
+  (truelabelsknn,knnpredictedlabels) = knn_classifier(a,b)
+  
 if __name__ == "__main__":
   main()
