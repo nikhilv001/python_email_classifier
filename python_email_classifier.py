@@ -6,11 +6,11 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
 
 
-def read_email(email):                   # function to read email and return list of words
+def read_email(email):
   words = email.split()
   return words
   
-def stemming(words):                    # function to return stem words for every word in the list of words
+def stemming(words):
     ps = PorterStemmer()
     stem_words = []
     for w in words: 
@@ -18,7 +18,7 @@ def stemming(words):                    # function to return stem words for ever
     return stem_words
 
 
-def remove_stop_words(words):                       #removing stop words from the list of words
+def remove_stop_words(words):
     stop_words = set(stopwords.words('english'))
     stem_no_stop_words = []
     for r in words:
@@ -26,7 +26,7 @@ def remove_stop_words(words):                       #removing stop words from th
             stem_no_stop_words.append(r)
     return stem_no_stop_words
 
-def build_vocabulary(list):                         # building the vocabulary from all the emails
+def build_vocabulary(list):
   vocabulary = []
   current_vocabulary = set()
   for words in list:
@@ -36,7 +36,6 @@ def build_vocabulary(list):                         # building the vocabulary fr
         vocabulary.append(w)
   return vocabulary
 
-  
 def get_bow(words,vocabulary):
   email_bow = {}
   for w in vocabulary:
@@ -65,6 +64,36 @@ def read_data():
     for w in list_of_stem_words_with_label:
       data.append([get_bow(w[0],vocabulary),int(w[1])])
     return data,list_of_stem_words_with_label
+
+
+# visuallze data distribution
+def data_vis(data,list_of_stem_words_with_label):
+  data_visualization_0 = {}
+  data_visualization_1 = {}
+  data_visualization = {}
+  for elements in data:
+    for k in elements[0]:
+      data_visualization.update({k:0})
+      data_visualization_0.update({k:0})
+      data_visualization_1.update({k:0})
+    break
+  for elements in list_of_stem_words_with_label:
+    for k in elements[0]:
+      data_visualization[k] += int(1)
+      if elements[1] == 0 :
+        data_visualization_0[k] += int(1)
+      if elements[1] == 1 :
+        data_visualization_1[k] += int(1)
+  plt.bar(list(data_visualization.keys()), data_visualization.values(), color='g')
+  plt.show()
+  plt.bar(list(data_visualization_0.keys()), data_visualization_0.values(), color='g')
+  plt.show()
+  plt.bar(list(data_visualization_1.keys()), data_visualization_1.values(), color='g')
+  plt.show()
+  return
+
+
+
 
 def split(data):
   np.random.shuffle(data)
@@ -139,32 +168,21 @@ def knn_classifier(train_data,test_data):
   y_pred = knn.predict(X_test)
   # return predict_labels
   return true_test_labels,y_pred
+  
 
-# visuallze data distribution
-def data_vis(data,list_of_stem_words_with_label):
-  data_visualization_0 = {}
-  data_visualization_1 = {}
-  data_visualization = {}
-  for elements in data:
-    for k in elements[0]:
-      data_visualization.update({k:0})
-      data_visualization_0.update({k:0})
-      data_visualization_1.update({k:0})
-    break
-  for elements in list_of_stem_words_with_label:
-    for k in elements[0]:
-      data_visualization[k] += int(1)
-      if elements[1] == 0 :
-        data_visualization_0[k] += int(1)
-      if elements[1] == 1 :
-        data_visualization_1[k] += int(1)
-  plt.bar(list(data_visualization.keys()), data_visualization.values(), color='g')
-  plt.show()
-  plt.bar(list(data_visualization_0.keys()), data_visualization_0.values(), color='g')
-  plt.show()
-  plt.bar(list(data_visualization_1.keys()), data_visualization_1.values(), color='g')
-  plt.show()
-  return
+
+from sklearn import metrics
+
+# compute accuracy 
+def compute_accuracy(true_labels, predicted_labels):
+  acc = metrics.accuracy_score(true_labels, predicted_labels)
+  return acc
+
+# compute AUC score 
+def compute_auc(true_labels, predicted_labels):
+  fpr, tpr, thresholds = metrics.roc_curve(true_labels, predicted_labels)
+  auc = metrics.auc(fpr, tpr)
+  return auc
 
 
 def main():
@@ -174,6 +192,11 @@ def main():
 
   (truelabelssvm,svmpredictedlabels) = svm_classifier(a,b)
   (truelabelsknn,knnpredictedlabels) = knn_classifier(a,b)
-  
+  print("SVM accuracy: ",compute_accuracy(truelabelssvm,svmpredictedlabels))
+  print("K-NN accuracy: ",compute_accuracy(truelabelsknn,knnpredictedlabels))
+  print("SVM auc: ",compute_auc(truelabelssvm,svmpredictedlabels))
+  print("K-NN auc: ",compute_auc(truelabelsknn,knnpredictedlabels))
+  data_vis(data,list_of_stem_words_with_label)
+
 if __name__ == "__main__":
   main()
